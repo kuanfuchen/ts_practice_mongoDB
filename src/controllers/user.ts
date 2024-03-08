@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import createHttpError from 'http-errors';
 import UsersModel from '@/models/user';
 import { generateToken, verifyToken } from '@/utils';
+import { OAuth2Client } from 'google-auth-library';
 
 export const signup: RequestHandler = async (req, res, next) => {
     try {
@@ -35,25 +36,61 @@ export const signup: RequestHandler = async (req, res, next) => {
 
 export const login: RequestHandler = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+      const { email, password, token } = req.body;
+      // google oauth method 1
+      const oauth2Client = new OAuth2Client()
+      oauth2Client.setCredentials({ access_token: token })
+      const userInfo = await oauth2Client
+        .request({
+          url: 'https://www.googleapis.com/oauth2/v3/userinfo'
+        })
+        .then((response) => response.data)
+        .catch(() => null)
+      oauth2Client.revokeCredentials()
+      console.log(userInfo, 'userInfo')
+      res.send({
+        status: true,
+        token:token,
+        result:userInfo
+      });
+      // google oauth method 2
+      // const oauth2Client = new OAuth2Client({
+      //   clientId: '你的 Google Client ID',
+      //   clientSecret: '你的 Google Client Secret',
+      //   redirectUri: '你的 Google Redirect Uri'
+      // })
+      // 
+        // const client = new OAuth2Client({
+        //     clientId:'771037620608-aap4bl0pqg9ar5die31led536vcldotu.apps.googleusercontent.com',
+        //     clientSecret:'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',
+        //     redirectUri:``
+        // })
+        // const authorizeUrl = client.generateAuthUrl({
+        //   access_type: 'offline',
+        //   scope: [
+        //     'https://www.googleapis.com/auth/userinfo.profile',
+        //     'https://www.googleapis.com/auth/userinfo.email',
+        //   ],
+        // });
+        // res.redirect(authorizeUrl)
+        // 
+        // const user = await UsersModel.findOne({ email }).select('+password');
+        // if (!user) {
+        //     throw createHttpError(404, '此使用者不存在');
+        // }
 
-        const user = await UsersModel.findOne({ email }).select('+password');
-        if (!user) {
-            throw createHttpError(404, '此使用者不存在');
-        }
+        // const checkPassword = await bcrypt.compare(password, user.password);
+        // if (!checkPassword) {
+        //     throw createHttpError(400, '密碼錯誤');
+        // }
 
-        const checkPassword = await bcrypt.compare(password, user.password);
-        if (!checkPassword) {
-            throw createHttpError(400, '密碼錯誤');
-        }
+        // const { password: _, ...result } = user.toObject();
 
-        const { password: _, ...result } = user.toObject();
-
-        res.send({
-            status: true,
-            token: generateToken({ userId: user._id }),
-            result
-        });
+        // res.send({
+            // status: true,
+            // token: generateToken({ userId: user._id }),
+            // result
+        // });
     } catch (error) {
         next(error);
     }
