@@ -5,7 +5,7 @@ import { checkRequestBodyValidator, isAuth } from '@/middlewares';
 const router = Router();
 
 router.use(checkRequestBodyValidator);
-
+router.post('/googleLogin', UserController.googleLogin);
 router.post(
     /**
      * #swagger.description  = "登入"
