@@ -37,8 +37,8 @@ export const googleLogin:RequestHandler = async(req,res)=>{
   try{
     const { token } = req.body
     const client = new OAuth2Client({
-      clientId: process.env.EMAILER_USER,
-      clientSecret: process.env.EMAILER_PASSWORD,
+      clientId: process.env.GOOGLE_OAUTH,
+      clientSecret: process.env.GOOGLE_OAUTH_PASSWORD,
       redirectUri: `http://localhost:3000/api/v1/user/callback`,
     });
     const vertifyToken = async(token:string)=>{
